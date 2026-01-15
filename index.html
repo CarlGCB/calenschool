@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Calendario de horario</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9fafb;
+      margin: 0;
+      padding: 20px
+    }
+
+    h1 {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 24px
+    }
+
+    #date,
+    #time {
+      font-size: 16px;
+      color: #555;
+      margin-left: 10px
+    }
+
+    .legend {
+      margin: 10px 0;
+      display: flex;
+      gap: 20px;
+      font-size: 14px
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .color-box {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px
+    }
+
+    .calendar {
+      display: flex;
+      position: relative;
+      overflow-x: auto
+    }
+
+    .hours-col {
+      display: flex;
+      flex-direction: column;
+      margin-right: 5px
+    }
+
+    .hour {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 8px;
+      font-size: 12px;
+      color: #666
+    }
+
+    .days-grid {
+      display: flex;
+      flex: 1;
+      position: relative;
+      min-width: 600px
+    }
+
+    .day-col {
+      flex: 1;
+      border-left: 1px solid #ccc;
+      position: relative
+    }
+
+    .day-header {
+      background: #e5e7eb;
+      text-align: center;
+      padding: 5px;
+      font-weight: bold
+    }
+
+    .slot {
+      border-bottom: 1px solid #eee;
+      position: relative
+    }
+
+    .slot.big {
+      height: 50px
+    }
+
+    .slot.small {
+      height: 25px
+    }
+
+    .class {
+      position: absolute;
+      left: 2px;
+      right: 2px;
+      border-radius: 6px;
+      color: white;
+      padding: 4px;
+      font-size: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      text-align: left;
+    }
+
+    .class-1 {
+      border-top: 6px solid yellow
+    }
+
+    .class-2 {
+      border-top: 6px solid pink
+    }
+
+    .class-time {
+      font-size: 11px;
+      color: #f0f0f0;
+      margin-top: 2px
+    }
+
+    .class-absent {
+      font-size: 14px;
+      color: red;
+      margin-top: 4px;
+      font-weight: bold
+    }
+
+    .class-validation {
+      font-size: 14px;
+      color: #eab308;
+      margin-top: 4px;
+      font-weight: bold
+    }
+
+    .subjects-list {
+      margin-top: 20px
+    }
+
+    .subject-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin-bottom: 8px
+    }
+
+    .subject-links a,
+    .subject-link {
+      color: #007bff;
+      text-decoration: none;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+    }
+
+    .subject-links a:hover,
+    .subject-link:hover {
+      background: #e5e7eb;
+    }
+
+    .absent-label {
+      color: red;
+      font-weight: bold;
+      margin-left: 8px
+    }
+
+    .validation-pending-label {
+      color: #eab308;
+      font-weight: bold;
+      margin-left: 8px;
+    }
+
+    .time-indicator {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: red;
+      z-index: 1000;
+      pointer-events: none
+    }
+
+    .past-day-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.382);
+      z-index: 500;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>
+    Calendario de horario
+    <span>
+      <span id="date"></span> ·<span id="time"></span>
+    </span>
+  </h1>
+  <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin-bottom: 10px;">
+    <div style="display: flex; gap: 20px; align-items: center; width: 100%; justify-content: space-between;">
+      <div style="display: flex; gap: 20px; align-items: center;">
+        <div class="legend-item">
+          <div class="color-box" style="background:yellow"></div>1CFS
+        </div>
+        <div class="legend-item">
+          <div class="color-box" style="background:pink"></div>2CFS
+        </div>
+        <div id="semanaTurno" style="font-weight: bold; color: #333; font-size: 15px; margin-left: 530px;">
+          Semana de <span id="turnoText" style="color:#16a34a;">Tardes</span>
+        </div>
+      </div>
+      <label style="font-size:14px;">
+        <input type="checkbox" id="togglePastDays" checked style="vertical-align:middle;"> Mostrar días pasados
+      </label>
+    </div>
+    <label style="font-size:14px;">
+      <input type="checkbox" id="toggleAbsences" checked style="vertical-align:middle;"> Mostrar estado de ausencias
+    </label>
+  </div>
+
+  <div class="calendar">
+    <div id="hoursCol" class="hours-col"></div>
+    <div id="daysGrid" class="days-grid"></div>
+  </div>
+  <div id="subjectsList" class="subjects-list"></div>
+
+  <script>
+    const HOURS = Array.from({ length: 16 }, (_, i) => 8 + i); // 08:00 → 24:00
+    const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves'];
+
+    function slotHeight(hour) { return hour < 20 ? 50 : 25; }
+    function cumulativeOffset(hour) {
+      let offset = 0;
+      for (let h = 8; h < hour; h++) { offset += slotHeight(h); }
+      return offset;
+    }
+
+    const classes = [
+      { title: 'Servicios y Procesos 2', day: 0, start: '08:50', end: '09:45' },
+      { title: 'Itinerario personal 2', day: 0, start: '11:00', end: '11:55' },
+      { title: 'Itinerario personal 1', day: 0, start: '16:50', end: '17:45' },
+      { title: 'Proyecto 1', day: 0, start: '19:00', end: '19:55' },
+      { title: 'Programación 1', day: 1, start: '09:45', end: '10:40' },
+      { title: 'Itinerario personal 1', day: 1, start: '11:00', end: '11:55' },
+      { title: 'Digitalización 2', day: 1, start: '15:00', end: '15:55' },
+      { title: 'Proyecto 2', day: 1, start: '15:55', end: '16:50' },
+      { title: 'Sostenibilidad 2', day: 1, start: '16:50', end: '17:45' },
+      { title: 'Proyecto 1', day: 2, start: '09:45', end: '10:40' },
+      { title: 'Digitalización 2', day: 2, start: '11:00', end: '11:55' },
+      { title: 'Sostenibilidad 2', day: 2, start: '11:55', end: '12:50' },
+      { title: 'Itinerario personal 2', day: 2, start: '15:00', end: '15:55' },
+      { title: 'Optativa 2 - (Inglés)', day: 2, start: '16:50', end: '17:45' },
+      { title: 'Acceso a Datos 2', day: 2, start: '18:05', end: '19:00' },
+      { title: 'Acceso a Datos 2', day: 3, start: '08:50', end: '09:45' },
+      { title: 'Proyecto 2', day: 3, start: '09:45', end: '10:40' },
+      { title: 'Optativa 2 - (Inglés)', day: 3, start: '11:00', end: '11:55' },
+      { title: 'Servicios y Procesos 2', day: 3, start: '15:55', end: '16:50' },
+      { title: 'Programación 1', day: 3, start: '18:05', end: '19:00' }
+    ];
+
+    const absentSubjects = ['Proyecto 1', 'Sostenibilidad 2'];
+    const validationPendingSubjects = ['Itinerario personal 2', 'Itinerario personal 1'];
+
+    const customLinks = {
+      'Digitalización 2': [
+        { text: 'Mañanas y Tardes', href: 'https://teams.microsoft.com/l/meetup-join/19%3ameeting_MjY0MzVkNmMtNzdlOC00YTI2LWEyNGItYTU2YzczYmQ4ZmI1%40thread.v2/0?context=%7b%22Tid%22%3a%2273dd1114-ef7d-40c7-8669-569d32e7e29b%22%2c%22Oid%22%3a%220f5bde10-49b2-42ac-bc9a-e8cdad8bf90d%22%7d' }],
+      'Proyecto 2': [
+        { text: 'Mañanas', href: 'https://aules.edu.gva.es/semipresencial/mod/url/view.php?id=2861428' },
+        { text: 'Tardes', href: 'https://aules.edu.gva.es/semipresencial/mod/url/view.php?id=2861422' }
+      ],
+      'Itinerario personal 2': [
+        { text: 'Mañanas', href: 'https://teams.microsoft.com/l/meetup-join/19%3ameeting_YjFkYWQzZDMtZmJjZC00ODZjLWJhNjgtOGRmNWZhMmY4NjRh%40thread.v2/0?context=%7B%22Tid%22%3A%2273dd1114-ef7d-40c7-8669-569d32e7e29b%22%2C%22Oid%22%3A%2223570789-6b06-440b-b1be-f8c029b6b1e0%22%7D' },
+        { text: 'Tardes', href: 'https://teams.microsoft.com/l/meetup-join/19%3ameeting_ZjBkMDFlNGEtMzIyOS00MTlkLTk1NTktMDcxNzE2ZDdjYzlj%40thread.v2/0?context=%7B%22Tid%22%3A%2273dd1114-ef7d-40c7-8669-569d32e7e29b%22%2C%22Oid%22%3A%2223570789-6b06-440b-b1be-f8c029b6b1e0%22%7D' }
+      ],
+      'Sostenibilidad 2': [
+        { text: 'Mañanas', href: 'https://aules.edu.gva.es/semipresencial/course/section.php?id=423714' },
+        { text: 'Tardes', href: 'https://aules.edu.gva.es/semipresencial/course/section.php?id=427668' }
+      ],
+      'Proyecto 1': [
+        { text: 'Mañanas', href: 'https://aules.edu.gva.es/semipresencial/course/section.php?id=427644' },
+        { text: 'Tardes', href: 'https://aules.edu.gva.es/semipresencial/course/section.php?id=427645' }
+      ],
+      'Acceso a Datos 2': [
+        { text: 'Mañanas', href: 'https://teams.microsoft.com/l/meetup-join/19%3ameeting_ZTk1YmEzNWEtOWYwYy00OTViLWJkY2UtNDE1Yjk1Y2NjNmZl%40thread.v2/0?context=%7B%22Tid%22%3A%2273dd1114-ef7d-40c7-8669-569d32e7e29b%22%2C%22Oid%22%3A%22b834e005-524c-4738-9a38-e41591ad1bcb%22%7D' },
+        { text: 'Tardes', href: 'https://teams.microsoft.com/l/meetup-join/19%3ameeting_MTdjMzZjYTAtZjAyZS00NWQ4LTkyMGUtZjMwMDZkMjU2OWY1%40thread.v2/0?context=%7B%22Tid%22%3A%2273dd1114-ef7d-40c7-8669-569d32e7e29b%22%2C%22Oid%22%3A%22b834e005-524c-4738-9a38-e41591ad1bcb%22%7D' }
+      ]
+    };
+
+    // --- Turno detection data (se toman meses como 1 = Enero, ... 5 = Mayo)
+    const mañanasList = [
+      { month: 1, days: [12, 13, 14, 15, 16, 17, 18] },
+      { month: 1, days: [26, 27, 28, 29, 30, 31] },
+      { month: 2, days: [1, 9, 10, 11, 12, 13, 14, 15] },
+      { month: 2, days: [23, 24, 25, 26, 27, 28] },
+      { month: 3, days: [23, 24, 25, 26, 27, 28, 29] },
+      { month: 4, days: [20, 21, 22, 23, 24, 25, 26] },
+      { month: 5, days: [4, 5, 6, 7, 8, 9, 10] },
+      { month: 5, days: [18, 19, 20, 21, 22, 23, 24] }
+    ];
+
+    const tardesList = [
+      { month: 1, days: [19, 20, 21, 22, 23, 24, 25] },
+      { month: 2, days: [2, 3, 4, 5, 6, 7, 8] },
+      { month: 2, days: [16, 17, 18, 19, 20, 21, 22] },
+      { month: 3, days: [16, 17, 18, 19, 20, 21, 22] },
+      { month: 3, days: [30, 31] },
+      { month: 4, days: [13, 14, 15, 18, 19] },
+      { month: 4, days: [27, 28, 29, 30] },
+      { month: 5, days: [2, 3] },
+      { month: 5, days: [11, 12, 13, 14, 15, 16, 17] },
+      { month: 5, days: [25, 26, 27, 28, 29, 30, 31] }
+    ];
+
+    function determineSemanaTurno(dateObj) {
+      const month = dateObj.getMonth() + 1; // 1-12
+      const day = dateObj.getDate();
+
+      // check mañanas
+      for (const r of mañanasList) {
+        if (r.month === month && r.days.includes(day)) return 'Mañanas';
+      }
+      // check tardes
+      for (const r of tardesList) {
+        if (r.month === month && r.days.includes(day)) return 'Tardes';
+      }
+      // default: mantener el valor previo (usamos Tardes por defecto)
+      return 'Tardes';
+    }
+
+    function updateSemanaTurnoDisplay(now) {
+      const turno = determineSemanaTurno(now);
+      const turnoTextEl = document.getElementById('turnoText');
+      if (!turnoTextEl) return;
+      if (turno === 'Mañanas') {
+        turnoTextEl.textContent = 'Mañanas';
+        turnoTextEl.style.color = '#2563eb'; // azul para mañanas
+      } else {
+        turnoTextEl.textContent = 'Tardes';
+        turnoTextEl.style.color = '#16a34a'; // verde para tardes
+      }
+    }
+
+    function getColorByTime(start) {
+      const [hh, mm] = start.split(':').map(Number);
+      const hour = hh + mm / 60;
+      if (hour >= 8 && hour < 14) return '#2563eb';
+      if (hour >= 14.75 && hour <= 20.75) return '#16a34a';
+      return '#6b7280';
+    }
+    function getClassNumber(title) {
+      if (title.includes(' 1')) return 'class-1';
+      if (title.includes(' 2')) return 'class-2';
+      return '';
+    }
+
+    function updateDateTime() {
+      const now = new Date();
+      const daysName = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      const dayName = daysName[now.getDay()];
+      const day = ('0' + now.getDate()).slice(-2);
+      const month = ('0' + (now.getMonth() + 1)).slice(-2);
+      const hours = ('0' + now.getHours()).slice(-2);
+      const minutes = ('0' + now.getMinutes()).slice(-2);
+      document.getElementById('date').textContent = `${dayName} ${day}/${month}`;
+      document.getElementById('time').textContent = `${hours}:${minutes}`;
+      updateTimeIndicator();
+      markPastDays();
+      updateSemanaTurnoDisplay(now);
+    }
+    setInterval(updateDateTime, 1000);
+
+    function initGrid() {
+      const hoursCol = document.getElementById('hoursCol');
+      hoursCol.innerHTML = '';
+      HOURS.forEach(h => {
+        const el = document.createElement('div');
+        el.className = 'hour';
+        el.style.height = slotHeight(h) + 'px';
+        el.textContent = (h < 10 ? '0' + h : h) + ':00';
+        hoursCol.appendChild(el);
+      });
+      const daysGrid = document.getElementById('daysGrid');
+      daysGrid.innerHTML = '';
+      for (let d = 0; d < DAYS.length; d++) {
+        const col = document.createElement('div');
+        col.className = 'day-col';
+        const header = document.createElement('div');
+        header.className = 'day-header';
+        header.textContent = DAYS[d];
+        col.appendChild(header);
+        HOURS.forEach(h => {
+          const slot = document.createElement('div');
+          slot.className = 'slot ' + (h < 20 ? 'big' : 'small');
+          col.appendChild(slot);
+        });
+        daysGrid.appendChild(col);
+      }
+    }
+
+    function render() {
+      initGrid();
+      const showAbsences = document.getElementById('toggleAbsences')?.checked;
+      const turnoActual = determineSemanaTurno(new Date());
+
+      classes.forEach(c => {
+        // evitar dibujar en el calendario las dos asignaturas indicadas
+        if (c.title === 'Itinerario personal 1' || c.title === 'Itinerario personal 2') return;
+
+        const [sh, sm] = c.start.split(':').map(Number);
+        const [eh, em] = c.end.split(':').map(Number);
+        const startOffset = cumulativeOffset(sh) + (sm / 60) * slotHeight(sh);
+        const duration = ((eh + em / 60) - (sh + sm / 60));
+        let h = sh, remaining = duration, height = 0;
+        while (remaining > 0) {
+          const part = Math.min(1, remaining);
+          height += part * slotHeight(h);
+          remaining -= part;
+          h++;
+        }
+        const el = document.createElement('div');
+        el.className = `class ${getClassNumber(c.title)}`;
+        el.style.background = getColorByTime(c.start);
+        el.style.top = startOffset + 'px';
+        el.style.height = height + 'px';
+
+        const name = document.createElement('div');
+        name.textContent = c.title;
+        const time = document.createElement('div');
+        time.className = 'class-time';
+        time.textContent = `${c.start} - ${c.end}`;
+        el.appendChild(name);
+        el.appendChild(time);
+
+        if (showAbsences && absentSubjects.includes(c.title) && c.title !== 'Sostenibilidad 2' && c.title !== 'Proyecto 1') {
+          const absent = document.createElement('div');
+          absent.className = 'class-absent';
+          absent.textContent = 'Ausente';
+          el.appendChild(absent);
+        }
+
+        if (showAbsences && validationPendingSubjects.includes(c.title)) {
+          const validation = document.createElement('div');
+          validation.className = 'class-validation';
+          validation.textContent = 'Pendiente de convalidar';
+          validation.style.color = '#ffc014';
+          el.appendChild(validation);
+        }
+
+        // Si la clase es Sostenibilidad 2 o Proyecto 1, añadimos comportamiento de click en la tarjeta según el turno actual
+        if (c.title === 'Sostenibilidad 2') {
+          let href = turnoActual === 'Mañanas'
+            ? 'https://aules.edu.gva.es/semipresencial/course/section.php?id=423714'
+            : 'https://aules.edu.gva.es/semipresencial/course/section.php?id=427668';
+          el.style.cursor = 'pointer';
+          el.title = 'Abrir enlace de Sostenibilidad 2 según turno';
+          el.addEventListener('click', () => window.open(href, '_blank'));
+        } else if (c.title === 'Proyecto 1') {
+          let href = turnoActual === 'Mañanas'
+            ? 'https://aules.edu.gva.es/semipresencial/course/section.php?id=427644'
+            : 'https://aules.edu.gva.es/semipresencial/course/section.php?id=427645';
+          el.style.cursor = 'pointer';
+          el.title = 'Abrir enlace de Proyecto 1 según turno';
+          el.addEventListener('click', () => window.open(href, '_blank'));
+        }
+
+        const col = document.querySelector(`.day-col:nth-child(${c.day + 1})`);
+        col.style.position = 'relative';
+        col.appendChild(el);
+      });
+
+      const subjectsList = document.getElementById('subjectsList');
+      subjectsList.innerHTML = '';
+      // Filtramos para NO mostrar Itinerario personal 1 ni Itinerario personal 2 en la lista
+      const uniqueTitles = [...new Set(classes.map(c => c.title))]
+        .filter(t => t !== 'Itinerario personal 1' && t !== 'Itinerario personal 2');
+
+      uniqueTitles.forEach(t => {
+        const item = document.createElement('div');
+        item.className = 'subject-item';
+        item.style.display = 'flex';
+        item.style.justifyContent = 'space-between';
+        item.style.alignItems = 'center';
+
+        const name = document.createElement('span');
+        name.textContent = t;
+        name.style.flex = '1';
+        name.style.textAlign = 'left';
+
+        if (showAbsences && absentSubjects.includes(t) && t !== 'Proyecto 1' && t !== 'Sostenibilidad 2') {
+          const absent = document.createElement('span');
+          absent.className = 'absent-label';
+          absent.textContent = '(Ausente)';
+          name.appendChild(absent);
+        }
+
+        if (showAbsences && validationPendingSubjects.includes(t)) {
+          const validation = document.createElement('span');
+          validation.className = 'validation-pending-label';
+          validation.textContent = '(Pendiente de convalidar)';
+          name.appendChild(validation);
+        }
+
+        const correoDiv = document.createElement('div');
+        correoDiv.style.flex = '1';
+        correoDiv.style.textAlign = 'center';
+        const correoLink = document.createElement('a');
+        let correoTexto = '';
+
+        // *** Aquí asignamos el correo para Proyecto 1 a md.juanortiz@edu.gva.es ***
+        if (t === 'Acceso a Datos 2' || t === 'Proyecto 2') {
+          correoTexto = 'jr.garciasevilla@edu.gva.es';
+          correoLink.textContent = correoTexto;
+          correoLink.href = 'https://outlook.office365.com/mail/deeplink/compose?to=jr.garciasevilla@edu.gva.es';
+          correoLink.target = '_blank';
+        } else if (t === 'Digitalización 2') {
+          correoTexto = 'g.jaraleal@edu.gva.es';
+          correoLink.textContent = correoTexto;
+          correoLink.href = 'https://outlook.office365.com/mail/deeplink/compose?to=g.jaraleal@edu.gva.es';
+          correoLink.target = '_blank';
+        } else if (t === 'Itinerario personal 2' || t === 'Itinerario personal 1') {
+          correoTexto = 'mr.floresbeneyto@edu.gva.es';
+          correoLink.textContent = correoTexto;
+          correoLink.href = 'https://outlook.office365.com/mail/deeplink/compose?to=mr.floresbeneyto@edu.gva.es';
+          correoLink.target = '_blank';
+        } else if (t === 'Sostenibilidad 2' || t === 'Proyecto 1') {
+          // Sostenibilidad 2 y Proyecto 1 comparten ahora el correo md.juanortiz@edu.gva.es (según tu petición)
+          correoTexto = 'md.juanortiz@edu.gva.es';
+          correoLink.textContent = correoTexto;
+          correoLink.href = 'https://outlook.office365.com/mail/deeplink/compose?to=md.juanortiz@edu.gva.es';
+          correoLink.target = '_blank';
+        } else {
+          correoTexto = '';
+          correoLink.textContent = 'correo profesor';
+          correoLink.href = '#';
+          correoLink.addEventListener('click', function (e) {
+            e.preventDefault();
+          });
+        }
+        correoLink.className = 'subject-link';
+        correoDiv.appendChild(correoLink);
+
+        // Botón copiar solo con icono (siempre visible)
+        const copyBtn = document.createElement('button');
+        copyBtn.setAttribute('aria-label', 'Copiar correo');
+        copyBtn.style.marginLeft = '8px';
+        copyBtn.style.padding = '2px 6px';
+        copyBtn.style.fontSize = '14px';
+        copyBtn.style.cursor = 'pointer';
+        copyBtn.style.background = 'none';
+        copyBtn.style.border = 'none';
+        copyBtn.style.display = 'inline-flex';
+        copyBtn.style.alignItems = 'center';
+        copyBtn.style.verticalAlign = 'middle';
+        copyBtn.style.color = '#444';
+        copyBtn.style.transition = 'color 0.2s';
+        copyBtn.onmouseover = () => copyBtn.style.color = '#007bff';
+        copyBtn.onmouseout = () => copyBtn.style.color = '#444';
+
+        // SVG icono portapapeles
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '18');
+        svg.setAttribute('height', '18');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('fill', 'none');
+        svg.setAttribute('stroke', 'currentColor');
+        svg.setAttribute('stroke-width', '2');
+        svg.setAttribute('stroke-linecap', 'round');
+        svg.setAttribute('stroke-linejoin', 'round');
+        svg.innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2"/>';
+        copyBtn.appendChild(svg);
+
+        // Mensaje visual al copiar (solo el icono cambia de color, no el botón)
+        copyBtn.addEventListener('click', function () {
+          if (correoTexto) {
+            navigator.clipboard.writeText(correoTexto);
+            svg.style.stroke = '#16a34a';
+            setTimeout(() => svg.style.stroke = '', 1200);
+          } else {
+            svg.style.stroke = '#eab308'; // Amarillo para indicar que no hay correo
+            setTimeout(() => svg.style.stroke = '', 1200);
+          }
+        });
+        correoDiv.appendChild(copyBtn);
+
+        const links = document.createElement('div');
+        links.className = 'subject-links';
+        links.style.flex = '1';
+        links.style.textAlign = 'right';
+
+        // Usamos customLinks para mostrar MAÑANAS/TARDES cuando existan (incluye Proyecto 1 y Sostenibilidad 2 ahora)
+        if (customLinks[t]) {
+          customLinks[t].forEach(l => {
+            const a = document.createElement('a');
+            a.href = l.href;
+            a.textContent = l.text;
+            a.target = '_blank';
+            links.appendChild(a);
+          });
+        } else {
+          const emptyLink = document.createElement('a');
+          emptyLink.href = '#';
+          emptyLink.textContent = 'Enlace';
+          emptyLink.addEventListener('click', function (e) {
+            e.preventDefault();
+          });
+          links.appendChild(emptyLink);
+        }
+
+        item.appendChild(name);
+        item.appendChild(correoDiv);
+        item.appendChild(links);
+        subjectsList.appendChild(item);
+      });
+    }
+
+    function updateTimeIndicator() {
+      const now = new Date();
+      const hh = now.getHours();
+      const mm = now.getMinutes();
+      if (hh < 8 || hh >= 24) return;
+
+      const jsDay = now.getDay();
+      let dayIndex;
+      if (jsDay === 1) dayIndex = 0;
+      else if (jsDay === 2) dayIndex = 1;
+      else if (jsDay === 3) dayIndex = 2;
+      else if (jsDay === 4) dayIndex = 3;
+      else return;
+
+      const col = document.querySelector(`.day-col:nth-child(${dayIndex + 1})`);
+      if (!col) return;
+
+      let indicator = col.querySelector('.time-indicator');
+      if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.className = 'time-indicator';
+        col.appendChild(indicator);
+      }
+
+      const offset = cumulativeOffset(hh) + (mm / 60) * slotHeight(hh);
+      indicator.style.top = (offset + 25) + 'px';
+    }
+
+    function markPastDays() {
+      const showOverlay = document.getElementById('togglePastDays')?.checked;
+      const now = new Date();
+      const jsDay = now.getDay();
+      let todayIndex = null;
+      if (jsDay === 1) todayIndex = 0;
+      else if (jsDay === 2) todayIndex = 1;
+      else if (jsDay === 3) todayIndex = 2;
+      else if (jsDay === 4) todayIndex = 3;
+      else return;
+
+      const dayCols = document.querySelectorAll('.day-col');
+      dayCols.forEach((col, i) => {
+        let overlay = col.querySelector('.past-day-overlay');
+        if (i < todayIndex && showOverlay) {
+          if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'past-day-overlay';
+            col.appendChild(overlay);
+          }
+        } else if (overlay) {
+          overlay.remove();
+        }
+      });
+    }
+
+    // inicialización y eventos
+    updateDateTime();
+    render();
+    markPastDays();
+
+    document.getElementById('togglePastDays').addEventListener('change', function () {
+      markPastDays();
+    });
+    document.getElementById('toggleAbsences').addEventListener('change', function () {
+      render();
+    });
+  </script>
+</body>
+
+</html>
