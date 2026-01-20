@@ -442,8 +442,24 @@
         el.style.top = startOffset + 'px';
         el.style.height = height + 'px';
 
+        // título de la tarjeta: añadimos "(Clase R epaso)" en amarillo si es:
+        // - Proyecto 1 en Lunes (day === 0)
+        // - Sostenibilidad 2 en Martes (day === 1)
         const name = document.createElement('div');
         name.textContent = c.title;
+
+        if ((c.title === 'Proyecto 1' && c.day === 0) || (c.title === 'Sostenibilidad 2' && c.day === 1)) {
+          const label = document.createElement('span');
+          label.textContent = ' (Clase Repaso - NO NUEVO CONTENIDO)';
+          label.style.color = '#ffeb3b'; // amarillo
+          label.style.fontWeight = '700';
+          label.style.marginLeft = '4px';
+          // para asegurar que el label sea visible aunque el contenedor tenga color blanco de texto por defecto,
+          // aplicamos un pequeño text-shadow (opcional) para mejorar legibilidad sobre fondos claros.
+          label.style.textShadow = '0 0 2px rgba(0,0,0,0.35)';
+          name.appendChild(label);
+        }
+
         const time = document.createElement('div');
         time.className = 'class-time';
         time.textContent = `${c.start} - ${c.end}`;
@@ -525,7 +541,6 @@
         const correoLink = document.createElement('a');
         let correoTexto = '';
 
-        // *** Aquí asignamos el correo para Proyecto 1 a md.juanortiz@edu.gva.es ***
         if (t === 'Acceso a Datos 2' || t === 'Proyecto 2') {
           correoTexto = 'jr.garciasevilla@edu.gva.es';
           correoLink.textContent = correoTexto;
@@ -542,7 +557,6 @@
           correoLink.href = 'https://outlook.office365.com/mail/deeplink/compose?to=mr.floresbeneyto@edu.gva.es';
           correoLink.target = '_blank';
         } else if (t === 'Sostenibilidad 2' || t === 'Proyecto 1') {
-          // Sostenibilidad 2 y Proyecto 1 comparten ahora el correo md.juanortiz@edu.gva.es (según tu petición)
           correoTexto = 'md.juanortiz@edu.gva.es';
           correoLink.textContent = correoTexto;
           correoLink.href = 'https://outlook.office365.com/mail/deeplink/compose?to=md.juanortiz@edu.gva.es';
@@ -588,7 +602,6 @@
         svg.innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2"/>';
         copyBtn.appendChild(svg);
 
-        // Mensaje visual al copiar (solo el icono cambia de color, no el botón)
         copyBtn.addEventListener('click', function () {
           if (correoTexto) {
             navigator.clipboard.writeText(correoTexto);
@@ -606,7 +619,6 @@
         links.style.flex = '1';
         links.style.textAlign = 'right';
 
-        // Usamos customLinks para mostrar MAÑANAS/TARDES cuando existan (incluye Proyecto 1 y Sostenibilidad 2 ahora)
         if (customLinks[t]) {
           customLinks[t].forEach(l => {
             const a = document.createElement('a');
