@@ -792,14 +792,96 @@
     }
 
     function toggleDarkMode() {
-      const isDark = !document.body.classList.contains('dark-mode');
-      applyDarkMode(isDark);
-      try { localStorage.setItem('darkMode', isDark ? '1' : '0'); } catch (e) { /* ignorado */ }
+      // Alterna manualmente; el modo automático puede volver a cambiarlo en el próximo amanecer/atardecer
+      applyDarkMode(!document.body.classList.contains('dark-mode'));
     }
 
-    let savedDark = false;
-    try { savedDark = localStorage.getItem('darkMode') === '1'; } catch (e) { /* ignorado */ }
-    applyDarkMode(savedDark);
+    // --- Cálculo de amanecer/atardecer (algoritmo clásico "Almanac for Computers", 1990) ---
+    const DEFAULT_COORDS = { lat: 38.3452, lng: -0.4810 }; // Alicante, usado si no hay geolocalización
+    let sunCoords = null;
+    let autoDarkTimer = null;
+
+    function toRad(deg) { return deg * Math.PI / 180; }
+    function toDeg(rad) { return rad * 180 / Math.PI; }
+    function normalizeDeg(deg) { deg = deg % 360; return deg < 0 ? deg + 360 : deg; }
+    function normalizeHour(h) { h = h % 24; return h < 0 ? h + 24 : h; }
+    function getDayOfYear(date) {
+      const start = new Date(date.getFullYear(), 0, 0);
+      return Math.floor((date - start) / 86400000);
+    }
+
+    function calcSunUTHours(date, lat, lng, isSunrise) {
+      const zenith = 90.833; // incluye refracción atmosférica estándar
+      const N = getDayOfYear(date);
+      const lngHour = lng / 15;
+      const t = isSunrise ? N + ((6 - lngHour) / 24) : N + ((18 - lngHour) / 24);
+      const M = (0.9856 * t) - 3.289;
+      let L = M + (1.916 * Math.sin(toRad(M))) + (0.020 * Math.sin(2 * toRad(M))) + 282.634;
+      L = normalizeDeg(L);
+      let RA = toDeg(Math.atan(0.91764 * Math.tan(toRad(L))));
+      RA = normalizeDeg(RA);
+      const Lquadrant = Math.floor(L / 90) * 90;
+      const RAquadrant = Math.floor(RA / 90) * 90;
+      RA = (RA + (Lquadrant - RAquadrant)) / 15;
+      const sinDec = 0.39782 * Math.sin(toRad(L));
+      const cosDec = Math.cos(Math.asin(sinDec));
+      const cosH = (Math.cos(toRad(zenith)) - (sinDec * Math.sin(toRad(lat)))) / (cosDec * Math.cos(toRad(lat)));
+      if (cosH > 1 || cosH < -1) return null; // el sol no sale/se pone ese día en esa latitud (no ocurre en España)
+      let H = isSunrise ? 360 - toDeg(Math.acos(cosH)) : toDeg(Math.acos(cosH));
+      H = H / 15;
+      const T = H + RA - (0.06571 * t) - 6.622;
+      return normalizeHour(T - lngHour); // horas UTC decimales
+    }
+
+    function getSunTimes(date, lat, lng) {
+      const riseUT = calcSunUTHours(date, lat, lng, true);
+      const setUT = calcSunUTHours(date, lat, lng, false);
+      if (riseUT === null || setUT === null) return null;
+      const toDateObj = (utHours) => {
+        const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        d.setUTCMinutes(Math.round(utHours * 60));
+        return d;
+      };
+      return { sunrise: toDateObj(riseUT), sunset: toDateObj(setUT) };
+    }
+
+    function scheduleAutoDarkMode() {
+      const coords = sunCoords || DEFAULT_COORDS;
+      const now = new Date();
+      const today = getSunTimes(now, coords.lat, coords.lng);
+      if (!today) return;
+      const tomorrow = getSunTimes(new Date(now.getTime() + 86400000), coords.lat, coords.lng);
+
+      const isNight = now >= today.sunset || now < today.sunrise;
+      applyDarkMode(isNight);
+
+      const candidates = [today.sunrise, today.sunset, tomorrow && tomorrow.sunrise, tomorrow && tomorrow.sunset]
+        .filter(d => d && d > now)
+        .sort((a, b) => a - b);
+      const next = candidates[0];
+
+      if (autoDarkTimer) clearTimeout(autoDarkTimer);
+      if (next) {
+        autoDarkTimer = setTimeout(scheduleAutoDarkMode, (next - now) + 1000);
+      }
+    }
+
+    function initAutoDarkMode() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            sunCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            scheduleAutoDarkMode();
+          },
+          () => scheduleAutoDarkMode(), // sin permiso de ubicación: se usa Alicante por defecto
+          { timeout: 5000 }
+        );
+      } else {
+        scheduleAutoDarkMode();
+      }
+    }
+
+    initAutoDarkMode();
 
     // inicialización y eventos
     loadCustomLinksOverrides();
