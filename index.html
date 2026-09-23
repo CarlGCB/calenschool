@@ -205,6 +205,17 @@
       pointer-events: none;
     }
 
+    .festivo-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(239, 68, 68, 0.35);
+      z-index: 600;
+      pointer-events: none;
+    }
+
     .icon-btn {
       padding: 2px 6px;
       cursor: pointer;
@@ -383,45 +394,63 @@
       ]
     };
 
-    // --- Turno detection data (se toman meses como 1 = Enero, ... 5 = Mayo)
-    const mañanasList = [
-      { month: 1, days: [12, 13, 14, 15, 16, 17, 18] },
-      { month: 1, days: [26, 27, 28, 29, 30, 31] },
-      { month: 2, days: [1, 9, 10, 11, 12, 13, 14, 15] },
-      { month: 2, days: [23, 24, 25, 26, 27, 28] },
-      { month: 3, days: [23, 24, 25, 26, 27, 28, 29] },
-      { month: 4, days: [20, 21, 22, 23, 24, 25, 26] },
-      { month: 5, days: [4, 5, 6, 7, 8, 9, 10] },
-      { month: 5, days: [18, 19, 20, 21, 22, 23, 24] }
+    // --- Turno detection data (curso 2026-2027) ---
+    const tardesList = [
+      { year: 2026, month: 9, days: [21, 22, 23, 24, 25, 26, 27] },
+      { year: 2026, month: 10, days: [5, 6, 7, 8, 19, 20, 21, 22, 23] },
+      { year: 2026, month: 11, days: [2, 3, 4, 5, 6, 16, 17, 18, 19, 20] },
+      { year: 2026, month: 12, days: [14, 15, 16, 17, 18] },
+      { year: 2027, month: 1, days: [11, 12, 13, 14, 15, 25, 26, 27, 28, 29] },
+      { year: 2027, month: 2, days: [8, 9, 10, 11, 12] },
+      { year: 2027, month: 3, days: [8, 9, 10, 11, 12] },
+      { year: 2027, month: 4, days: [5, 6, 7, 19, 20, 21, 22, 23] },
+      { year: 2027, month: 5, days: [3, 4, 5, 6, 7, 17, 18, 19, 20, 21] }
     ];
 
-    const tardesList = [
-      { month: 1, days: [19, 20, 21, 22, 23, 24, 25] },
-      { month: 2, days: [2, 3, 4, 5, 6, 7, 8] },
-      { month: 2, days: [16, 17, 18, 19, 20, 21, 22] },
-      { month: 3, days: [16, 17, 18, 19, 20, 21, 22] },
-      { month: 3, days: [30, 31] },
-      { month: 4, days: [13, 14, 15, 18, 19] },
-      { month: 4, days: [27, 28, 29, 30] },
-      { month: 5, days: [2, 3] },
-      { month: 5, days: [11, 12, 13, 14, 15, 16, 17] },
-      { month: 5, days: [25, 26, 27, 28, 29, 30, 31] }
+    const mañanasList = [
+      { year: 2026, month: 9, days: [28, 29, 30] },
+      { year: 2026, month: 10, days: [1, 2, 13, 14, 15, 16, 26, 27, 28, 29, 30] },
+      { year: 2026, month: 11, days: [9, 10, 11, 12, 13] },
+      { year: 2026, month: 12, days: [9, 10, 11] },
+      { year: 2027, month: 1, days: [7, 8, 18, 19, 20, 21, 22] },
+      { year: 2027, month: 2, days: [1, 2, 3, 4, 5, 15, 16, 17, 18, 19] },
+      { year: 2027, month: 3, days: [1, 2, 3, 4, 5, 15, 16, 17, 18] },
+      { year: 2027, month: 4, days: [1, 2, 12, 13, 14, 15, 16, 26, 27, 28, 29, 30] },
+      { year: 2027, month: 5, days: [10, 11, 12, 13, 14, 24, 25, 26, 27, 28] }
+    ];
+
+    const festivosList = [
+      { year: 2026, month: 10, days: [9, 12] },
+      { year: 2026, month: 11, days: [1] },
+      { year: 2026, month: 12, days: [7, 8, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31] },
+      { year: 2027, month: 1, days: [1, 2, 3, 4, 5, 6] },
+      { year: 2027, month: 3, days: [19, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31] },
+      { year: 2027, month: 4, days: [8, 9] },
+      { year: 2027, month: 5, days: [1] }
     ];
 
     function determineSemanaTurno(dateObj) {
+      const year = dateObj.getFullYear();
       const month = dateObj.getMonth() + 1; // 1-12
       const day = dateObj.getDate();
 
       // check mañanas
       for (const r of mañanasList) {
-        if (r.month === month && r.days.includes(day)) return 'Mañanas';
+        if (r.year === year && r.month === month && r.days.includes(day)) return 'Mañanas';
       }
       // check tardes
       for (const r of tardesList) {
-        if (r.month === month && r.days.includes(day)) return 'Tardes';
+        if (r.year === year && r.month === month && r.days.includes(day)) return 'Tardes';
       }
-      // default: mantener el valor previo (usamos Tardes por defecto)
+      // default: fuera del rango de datos, se mantiene Tardes
       return 'Tardes';
+    }
+
+    function isFestivo(dateObj) {
+      const year = dateObj.getFullYear();
+      const month = dateObj.getMonth() + 1;
+      const day = dateObj.getDate();
+      return festivosList.some(r => r.year === year && r.month === month && r.days.includes(day));
     }
 
     function updateSemanaTurnoDisplay(now) {
@@ -462,6 +491,7 @@
       document.getElementById('time').textContent = `${hours}:${minutes}`;
       updateTimeIndicator();
       markPastDays();
+      markFestivos();
       updateSemanaTurnoDisplay(now);
     }
     setInterval(updateDateTime, 1000);
@@ -760,6 +790,35 @@
       });
     }
 
+    function getMondayOfWeek(date) {
+      const d = new Date(date);
+      d.setHours(0, 0, 0, 0);
+      const jsDay = d.getDay(); // 0 = domingo ... 6 = sábado
+      const diff = jsDay === 0 ? -6 : 1 - jsDay;
+      d.setDate(d.getDate() + diff);
+      return d;
+    }
+
+    function markFestivos() {
+      const monday = getMondayOfWeek(new Date());
+      const dayCols = document.querySelectorAll('.day-col');
+      dayCols.forEach((col, i) => {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        let overlay = col.querySelector('.festivo-overlay');
+        if (isFestivo(d)) {
+          if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'festivo-overlay';
+            overlay.title = 'Festivo';
+            col.appendChild(overlay);
+          }
+        } else if (overlay) {
+          overlay.remove();
+        }
+      });
+    }
+
     // --- Persistencia de los enlaces editados (Mañanas/Tardes) ---
     function loadCustomLinksOverrides() {
       try {
@@ -888,6 +947,7 @@
     updateDateTime();
     render();
     markPastDays();
+    markFestivos();
 
     document.getElementById('togglePastDays').addEventListener('change', function () {
       markPastDays();
