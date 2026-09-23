@@ -70,7 +70,7 @@
       display: flex;
       flex: 1;
       position: relative;
-      min-width: 600px
+      min-width: 750px
     }
 
     .day-col {
@@ -245,7 +245,7 @@
 
   <script>
     const HOURS = Array.from({ length: 16 }, (_, i) => 8 + i); // 08:00 → 24:00
-    const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves'];
+    const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
 
     function slotHeight(hour) { return hour < 20 ? 50 : 25; }
     function cumulativeOffset(hour) {
@@ -255,49 +255,21 @@
     }
 
     const classes = [
-      { title: 'Servicios y Procesos 2', day: 0, start: '08:50', end: '09:45' },
-      { title: 'Itinerario personal 2', day: 0, start: '11:00', end: '11:55' },
-      { title: 'Itinerario personal 1', day: 0, start: '16:50', end: '17:45' },
-      { title: 'Proyecto 1', day: 0, start: '19:00', end: '19:55' },
-      { title: 'Programación 1', day: 1, start: '09:45', end: '10:40' },
-      { title: 'Itinerario personal 1', day: 1, start: '11:00', end: '11:55' },
-      { title: 'Digitalización 2', day: 1, start: '15:00', end: '15:55' },
-      { title: 'Proyecto 2', day: 1, start: '15:55', end: '16:50' },
-      { title: 'Sostenibilidad 2', day: 1, start: '16:50', end: '17:45' },
-      { title: 'Proyecto 1', day: 2, start: '09:45', end: '10:40' },
-      { title: 'Digitalización 2', day: 2, start: '11:00', end: '11:55' },
-      { title: 'Sostenibilidad 2', day: 2, start: '11:55', end: '12:50' },
-      { title: 'Itinerario personal 2', day: 2, start: '15:00', end: '15:55' },
-      { title: 'Optativa 2 - (Inglés)', day: 2, start: '16:50', end: '17:45' },
-      { title: 'Acceso a Datos 2', day: 2, start: '18:05', end: '19:00' },
-      { title: 'Acceso a Datos 2', day: 3, start: '08:50', end: '09:45' },
-      { title: 'Proyecto 2', day: 3, start: '09:45', end: '10:40' },
-      { title: 'Optativa 2 - (Inglés)', day: 3, start: '11:00', end: '11:55' },
-      { title: 'Servicios y Procesos 2', day: 3, start: '15:55', end: '16:50' },
-      { title: 'Programación 1', day: 3, start: '18:05', end: '19:00' }
+      { title: 'Programación 1', day: 1, start: '09:25', end: '10:10' },
+      { title: 'Programación 1', day: 3, start: '18:05', end: '19:00' },
+      { title: 'Acceso a Datos 2', day: 1, start: '18:05', end: '19:00' },
+      { title: 'Acceso a Datos 2', day: 4, start: '11:15', end: '12:00' },
+      { title: 'Proyecto 2', day: 1, start: '19:00', end: '19:55' },
+      { title: 'Proyecto 2', day: 4, start: '12:20', end: '13:05' }
     ];
 
-    const absentSubjects = ['Proyecto 1', 'Sostenibilidad 2'];
-    const validationPendingSubjects = ['Itinerario personal 2', 'Itinerario personal 1'];
+    const absentSubjects = [];
+    const validationPendingSubjects = [];
 
     const customLinks = {
-      'Digitalización 2': [
-        { text: 'Mañanas y Tardes', href: 'https://teams.microsoft.com/l/meetup-join/19%3ameeting_MjY0MzVkNmMtNzdlOC00YTI2LWEyNGItYTU2YzczYmQ4ZmI1%40thread.v2/0?context=%7b%22Tid%22%3a%2273dd1114-ef7d-40c7-8669-569d32e7e29b%22%2c%22Oid%22%3a%220f5bde10-49b2-42ac-bc9a-e8cdad8bf90d%22%7d' }],
       'Proyecto 2': [
         { text: 'Mañanas', href: 'https://aules.edu.gva.es/semipresencial/mod/url/view.php?id=2861428' },
         { text: 'Tardes', href: 'https://aules.edu.gva.es/semipresencial/mod/url/view.php?id=2861422' }
-      ],
-      'Itinerario personal 2': [
-        { text: 'Mañanas', href: 'https://teams.microsoft.com/l/meetup-join/19%3ameeting_YjFkYWQzZDMtZmJjZC00ODZjLWJhNjgtOGRmNWZhMmY4NjRh%40thread.v2/0?context=%7B%22Tid%22%3A%2273dd1114-ef7d-40c7-8669-569d32e7e29b%22%2C%22Oid%22%3A%2223570789-6b06-440b-b1be-f8c029b6b1e0%22%7D' },
-        { text: 'Tardes', href: 'https://teams.microsoft.com/l/meetup-join/19%3ameeting_ZjBkMDFlNGEtMzIyOS00MTlkLTk1NTktMDcxNzE2ZDdjYzlj%40thread.v2/0?context=%7B%22Tid%22%3A%2273dd1114-ef7d-40c7-8669-569d32e7e29b%22%2C%22Oid%22%3A%2223570789-6b06-440b-b1be-f8c029b6b1e0%22%7D' }
-      ],
-      'Sostenibilidad 2': [
-        { text: 'Mañanas', href: 'https://aules.edu.gva.es/semipresencial/course/section.php?id=423714' },
-        { text: 'Tardes', href: 'https://aules.edu.gva.es/semipresencial/course/section.php?id=427668' }
-      ],
-      'Proyecto 1': [
-        { text: 'Mañanas', href: 'https://aules.edu.gva.es/semipresencial/course/section.php?id=427644' },
-        { text: 'Tardes', href: 'https://aules.edu.gva.es/semipresencial/course/section.php?id=427645' }
       ],
       'Acceso a Datos 2': [
         { text: 'Mañanas', href: 'https://teams.microsoft.com/l/meetup-join/19%3ameeting_ZTk1YmEzNWEtOWYwYy00OTViLWJkY2UtNDE1Yjk1Y2NjNmZl%40thread.v2/0?context=%7B%22Tid%22%3A%2273dd1114-ef7d-40c7-8669-569d32e7e29b%22%2C%22Oid%22%3A%22b834e005-524c-4738-9a38-e41591ad1bcb%22%7D' },
@@ -419,12 +391,8 @@
     function render() {
       initGrid();
       const showAbsences = document.getElementById('toggleAbsences')?.checked;
-      const turnoActual = determineSemanaTurno(new Date());
 
       classes.forEach(c => {
-        // evitar dibujar en el calendario las dos asignaturas indicadas
-        if (c.title === 'Itinerario personal 1' || c.title === 'Itinerario personal 2') return;
-
         const [sh, sm] = c.start.split(':').map(Number);
         const [eh, em] = c.end.split(':').map(Number);
         const startOffset = cumulativeOffset(sh) + (sm / 60) * slotHeight(sh);
@@ -442,23 +410,8 @@
         el.style.top = startOffset + 'px';
         el.style.height = height + 'px';
 
-        // título de la tarjeta: añadimos "(Clase R epaso)" en amarillo si es:
-        // - Proyecto 1 en Lunes (day === 0)
-        // - Sostenibilidad 2 en Martes (day === 1)
         const name = document.createElement('div');
         name.textContent = c.title;
-
-        if ((c.title === 'Proyecto 1' && c.day === 0) || (c.title === 'Sostenibilidad 2' && c.day === 1)) {
-          const label = document.createElement('span');
-          label.textContent = ' (Clase Repaso - NO NUEVO CONTENIDO)';
-          label.style.color = '#ffeb3b'; // amarillo
-          label.style.fontWeight = '700';
-          label.style.marginLeft = '4px';
-          // para asegurar que el label sea visible aunque el contenedor tenga color blanco de texto por defecto,
-          // aplicamos un pequeño text-shadow (opcional) para mejorar legibilidad sobre fondos claros.
-          label.style.textShadow = '0 0 2px rgba(0,0,0,0.35)';
-          name.appendChild(label);
-        }
 
         const time = document.createElement('div');
         time.className = 'class-time';
@@ -466,7 +419,7 @@
         el.appendChild(name);
         el.appendChild(time);
 
-        if (showAbsences && absentSubjects.includes(c.title) && c.title !== 'Sostenibilidad 2' && c.title !== 'Proyecto 1') {
+        if (showAbsences && absentSubjects.includes(c.title)) {
           const absent = document.createElement('div');
           absent.className = 'class-absent';
           absent.textContent = 'Ausente';
@@ -481,23 +434,6 @@
           el.appendChild(validation);
         }
 
-        // Si la clase es Sostenibilidad 2 o Proyecto 1, añadimos comportamiento de click en la tarjeta según el turno actual
-        if (c.title === 'Sostenibilidad 2') {
-          let href = turnoActual === 'Mañanas'
-            ? 'https://aules.edu.gva.es/semipresencial/course/section.php?id=423714'
-            : 'https://aules.edu.gva.es/semipresencial/course/section.php?id=427668';
-          el.style.cursor = 'pointer';
-          el.title = 'Abrir enlace de Sostenibilidad 2 según turno';
-          el.addEventListener('click', () => window.open(href, '_blank'));
-        } else if (c.title === 'Proyecto 1') {
-          let href = turnoActual === 'Mañanas'
-            ? 'https://aules.edu.gva.es/semipresencial/course/section.php?id=427644'
-            : 'https://aules.edu.gva.es/semipresencial/course/section.php?id=427645';
-          el.style.cursor = 'pointer';
-          el.title = 'Abrir enlace de Proyecto 1 según turno';
-          el.addEventListener('click', () => window.open(href, '_blank'));
-        }
-
         const col = document.querySelector(`.day-col:nth-child(${c.day + 1})`);
         col.style.position = 'relative';
         col.appendChild(el);
@@ -505,9 +441,7 @@
 
       const subjectsList = document.getElementById('subjectsList');
       subjectsList.innerHTML = '';
-      // Filtramos para NO mostrar Itinerario personal 1 ni Itinerario personal 2 en la lista
-      const uniqueTitles = [...new Set(classes.map(c => c.title))]
-        .filter(t => t !== 'Itinerario personal 1' && t !== 'Itinerario personal 2');
+      const uniqueTitles = [...new Set(classes.map(c => c.title))];
 
       uniqueTitles.forEach(t => {
         const item = document.createElement('div');
@@ -521,7 +455,7 @@
         name.style.flex = '1';
         name.style.textAlign = 'left';
 
-        if (showAbsences && absentSubjects.includes(t) && t !== 'Proyecto 1' && t !== 'Sostenibilidad 2') {
+        if (showAbsences && absentSubjects.includes(t)) {
           const absent = document.createElement('span');
           absent.className = 'absent-label';
           absent.textContent = '(Ausente)';
@@ -545,21 +479,6 @@
           correoTexto = 'jr.garciasevilla@edu.gva.es';
           correoLink.textContent = correoTexto;
           correoLink.href = 'https://outlook.office365.com/mail/deeplink/compose?to=jr.garciasevilla@edu.gva.es';
-          correoLink.target = '_blank';
-        } else if (t === 'Digitalización 2') {
-          correoTexto = 'g.jaraleal@edu.gva.es';
-          correoLink.textContent = correoTexto;
-          correoLink.href = 'https://outlook.office365.com/mail/deeplink/compose?to=g.jaraleal@edu.gva.es';
-          correoLink.target = '_blank';
-        } else if (t === 'Itinerario personal 2' || t === 'Itinerario personal 1') {
-          correoTexto = 'mr.floresbeneyto@edu.gva.es';
-          correoLink.textContent = correoTexto;
-          correoLink.href = 'https://outlook.office365.com/mail/deeplink/compose?to=mr.floresbeneyto@edu.gva.es';
-          correoLink.target = '_blank';
-        } else if (t === 'Sostenibilidad 2' || t === 'Proyecto 1') {
-          correoTexto = 'md.juanortiz@edu.gva.es';
-          correoLink.textContent = correoTexto;
-          correoLink.href = 'https://outlook.office365.com/mail/deeplink/compose?to=md.juanortiz@edu.gva.es';
           correoLink.target = '_blank';
         } else {
           correoTexto = '';
@@ -656,6 +575,7 @@
       else if (jsDay === 2) dayIndex = 1;
       else if (jsDay === 3) dayIndex = 2;
       else if (jsDay === 4) dayIndex = 3;
+      else if (jsDay === 5) dayIndex = 4;
       else return;
 
       const col = document.querySelector(`.day-col:nth-child(${dayIndex + 1})`);
@@ -681,6 +601,7 @@
       else if (jsDay === 2) todayIndex = 1;
       else if (jsDay === 3) todayIndex = 2;
       else if (jsDay === 4) todayIndex = 3;
+      else if (jsDay === 5) todayIndex = 4;
       else return;
 
       const dayCols = document.querySelectorAll('.day-col');
