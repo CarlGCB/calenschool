@@ -925,17 +925,50 @@
       }
     }
 
+    function loadSunCoords() {
+      try {
+        const saved = localStorage.getItem('sunCoords');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (typeof parsed.lat === 'number' && typeof parsed.lng === 'number') return parsed;
+        }
+      } catch (e) { /* ignorado */ }
+      return null;
+    }
+
+    function saveSunCoords(coords) {
+      try { localStorage.setItem('sunCoords', JSON.stringify(coords)); } catch (e) { /* ignorado */ }
+    }
+
     function initAutoDarkMode() {
+      // si ya tenemos una ubicación guardada de una vez anterior, se usa al instante
+      // y no se vuelve a pedir permiso de geolocalización
+      const cached = loadSunCoords();
+      if (cached) {
+        sunCoords = cached;
+        scheduleAutoDarkMode();
+        return;
+      }
+
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           pos => {
             sunCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            saveSunCoords(sunCoords);
             scheduleAutoDarkMode();
           },
-          () => scheduleAutoDarkMode(), // sin permiso de ubicación: se usa Alicante por defecto
+          () => {
+            // sin permiso de ubicación: se usa Alicante por defecto y se guarda
+            // para no volver a preguntar en próximas visitas
+            sunCoords = DEFAULT_COORDS;
+            saveSunCoords(sunCoords);
+            scheduleAutoDarkMode();
+          },
           { timeout: 5000 }
         );
       } else {
+        sunCoords = DEFAULT_COORDS;
+        saveSunCoords(sunCoords);
         scheduleAutoDarkMode();
       }
     }
